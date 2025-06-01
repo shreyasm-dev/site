@@ -52,10 +52,14 @@ impl Handler for PageHandler {
   ) {
     for suffix in [".md", "/index.md"] {
       if let Some(content) = Content::of("page", &format!("{}{}", req.uri().path(), suffix)) {
+        let rendered = render(&content);
         res.render(Text::Html(
           Main {
-            title: Some("..."),
-            content: &render(&content).content,
+            title: rendered
+              .get_frontmatter("title")
+              .map(|value| value.as_str())
+              .flatten(),
+            content: &rendered.content,
           }
           .to_string(),
         ));

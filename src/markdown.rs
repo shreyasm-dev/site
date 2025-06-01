@@ -2,11 +2,22 @@ use markdown_it::{
   MarkdownIt, Node, NodeValue, Renderer,
   parser::inline::{InlineRule, InlineState},
 };
+use markdown_it_front_matter::FrontMatter;
+use saphyr::{LoadableYamlNode, Scalar, Yaml};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MarkdownOutput {
-  // pub frontmatter: HashMap<String, String>,
+  frontmatter: HashMap<Yaml<'static>, Yaml<'static>>,
   pub content: String,
+}
+
+impl MarkdownOutput {
+  pub fn get_frontmatter<'a>(&'a self, key: &'a str) -> Option<&'a Yaml<'static>> {
+    self
+      .frontmatter
+      .get(&Yaml::Value(Scalar::String(key.into())))
+  }
 }
 
 pub fn render(markdown: &str) -> MarkdownOutput {
@@ -30,7 +41,31 @@ pub fn render(markdown: &str) -> MarkdownOutput {
   markdown_it_tasklist::add(md);
   md.inline.add_rule::<MathScanner>();
 
+  let mut output = md.parse(markdown);
+  let mut frontmatter = HashMap::new();
+
+  if output
+    .children
+    .first()
+    .map(|node| node.node_type.name == "markdown_it_front_matter::FrontMatter")
+    .unwrap_or(false)
+  {
+    let fm = output.children.remove(0);
+    let fm: &FrontMatter = fm.cast().unwrap(); // should be safe
+
+    if let Ok(fm) = Yaml::load_from_str(&fm.content) {
+      if let Some(fm) = fm.first() {
+        if let Some(fm) = fm.as_mapping() {
+          for (key, value) in fm {
+            frontmatter.insert(key.clone(), value.clone());
+          }
+        }
+      }
+    }
+  }
+
   MarkdownOutput {
+    frontmatter,
     content: md.parse(markdown).render(),
   }
 }
@@ -49,9 +84,9 @@ impl NodeValue for Math {
         .output_type(katex::OutputType::Mathml)
         .display_mode(self.display)
         .build()
-        .unwrap(),
+        .unwrap_or_default(), // safe, but we go with the default just in case
     )
-    .unwrap();
+    .unwrap_or("<span class=\"katex-error\">KaTeX rendering failed</span>".to_string());
 
     fmt.text_raw(&mathml);
   }
@@ -76,7 +111,7 @@ impl InlineRule for MathScanner {
         break;
       }
 
-      content.push(state.src[state.pos..].chars().next().unwrap());
+      content.push(state.src[state.pos..].chars().next().unwrap_or_default());
       state.pos += 1;
     }
 
