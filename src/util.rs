@@ -1,6 +1,8 @@
+use crate::{
+  content::{Content, main::Main},
+  markdown::render,
+};
 use salvo::prelude::*;
-
-use crate::content::Content;
 
 pub struct ResourceHandler<T, F>(F)
 where
@@ -34,4 +36,32 @@ pub fn resource_router<T: Scribe + 'static, F: Fn(String) -> T + Send + Sync + '
   scribe: F,
 ) -> Router {
   Router::with_path(format!("{}/{{**path}}", kind)).get(ResourceHandler(scribe))
+}
+
+pub struct PageHandler;
+
+#[async_trait]
+impl Handler for PageHandler {
+  // TODO: do all ssr at compile time (proc macro)
+  async fn handle(
+    &self,
+    req: &mut Request,
+    _depot: &mut Depot,
+    res: &mut Response,
+    _ctrl: &mut FlowCtrl,
+  ) {
+    for suffix in [".md", "/index.md"] {
+      if let Some(content) = Content::of("page", &format!("{}{}", req.uri().path(), suffix)) {
+        res.render(Text::Html(
+          Main {
+            title: Some("..."),
+            content: &render(&content).content,
+          }
+          .to_string(),
+        ));
+        res.status_code(StatusCode::OK);
+        break;
+      }
+    }
+  }
 }

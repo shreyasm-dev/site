@@ -15,7 +15,7 @@ impl Content {
 
   pub fn of(kind: &str, path: &str) -> Option<String> {
     Self::get()
-      .get_file(Path::new(kind).join(path))
+      .get_file(Path::new(kind).join(path.trim_start_matches("/")))
       .and_then(|file| file.contents_utf8())
       .map(|s| s.to_string())
   }
