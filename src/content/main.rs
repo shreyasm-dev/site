@@ -1,11 +1,15 @@
+use super::components::style::Style;
+
 markup::define! {
-  Main<'a>(title: &'a str, content: &'a str) {
+  Main<'a>(title: Option<&'a str>, content: &'a str) {
     @markup::doctype()
-    html {
+    html[lang = "en"] {
       head {
-        title { "shreyasm" @if !title.is_empty() { " - " @title } }
+        title { "shreyasm" @if let Some(title) = title { " - " @title } }
         meta[charset = "UTF-8"];
         meta[name = "viewport", content = "width=device-width, initial-scale=1.0"];
+        @Style { path: "normalize.min" }
+        @Style { path: "main" }
       }
       body {
         @markup::raw(content)
