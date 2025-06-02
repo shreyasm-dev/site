@@ -18,7 +18,13 @@ $\$
 
 > x
 
-?resource(xyz)
+```rust
+fn main() {
+  println!("Hello, world!");
+}
+```
+
+@hello(world)
 
 *x*
 
