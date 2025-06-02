@@ -3,21 +3,13 @@ use markdown_it::{
   parser::inline::{InlineRule, InlineState},
 };
 use markdown_it_front_matter::FrontMatter;
-use saphyr::{LoadableYamlNode, Scalar, Yaml};
 use std::collections::HashMap;
+use yaml_rust2::{Yaml, YamlLoader};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MarkdownOutput {
-  frontmatter: HashMap<Yaml<'static>, Yaml<'static>>,
+  pub frontmatter: HashMap<Yaml, Yaml>,
   pub content: String,
-}
-
-impl MarkdownOutput {
-  pub fn get_frontmatter<'a>(&'a self, key: &'a str) -> Option<&'a Yaml<'static>> {
-    self
-      .frontmatter
-      .get(&Yaml::Value(Scalar::String(key.into())))
-  }
 }
 
 pub fn render(markdown: &str) -> MarkdownOutput {
@@ -33,12 +25,13 @@ pub fn render(markdown: &str) -> MarkdownOutput {
     md,
     markdown_it_heading_anchors::HeadingAnchorOptions {
       id_on_heading: true,
-      inner_html: " ¶".to_string(),
+      inner_html: "¶".to_string(),
       position: markdown_it_heading_anchors::AnchorPosition::End,
       ..Default::default()
     },
   );
   markdown_it_tasklist::add(md);
+
   md.inline.add_rule::<MathScanner>();
 
   let mut output = md.parse(markdown);
@@ -53,9 +46,9 @@ pub fn render(markdown: &str) -> MarkdownOutput {
     let fm = output.children.remove(0);
     let fm: &FrontMatter = fm.cast().unwrap(); // should be safe
 
-    if let Ok(fm) = Yaml::load_from_str(&fm.content) {
+    if let Ok(fm) = YamlLoader::load_from_str(&fm.content) {
       if let Some(fm) = fm.first() {
-        if let Some(fm) = fm.as_mapping() {
+        if let Some(fm) = fm.as_hash() {
           for (key, value) in fm {
             frontmatter.insert(key.clone(), value.clone());
           }

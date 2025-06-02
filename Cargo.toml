@@ -14,8 +14,8 @@ markdown-it-heading-anchors = "0.3.0"
 markdown-it-tasklist = "0.2.0"
 markup = "0.15.0"
 salvo = "0.79.0"
-saphyr = { version = "0.0.4", features = [] }
 thiserror = "2.0.12"
 tokio = { version = "1.45.1", features = ["macros"] }
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
+yaml-rust2 = { version = "0.10.2", features = [] }

@@ -3,6 +3,7 @@ use crate::{
   markdown::render,
 };
 use salvo::prelude::*;
+use yaml_rust2::Yaml;
 
 pub struct ResourceHandler<T, F>(F)
 where
@@ -56,7 +57,8 @@ impl Handler for PageHandler {
         res.render(Text::Html(
           Main {
             title: rendered
-              .get_frontmatter("title")
+              .frontmatter
+              .get(&Yaml::String("title".to_string()))
               .map(|value| value.as_str())
               .flatten(),
             content: &rendered.content,

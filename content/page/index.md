@@ -18,6 +18,9 @@ $\$
 
 > x
 
+?resource(xyz)
+
 *x*
+
 $
 xy

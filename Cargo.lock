@@ -1453,15 +1453,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
 
 [[package]]
-name = "ordered-float"
-version = "5.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "overload"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2093,29 +2084,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "saphyr"
-version = "0.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9235237b78e93229dfceefd307ca041d6e1752ac7eaaf392531c3778fa4810a1"
-dependencies = [
- "arraydeque",
- "encoding_rs",
- "hashlink",
- "ordered-float",
- "saphyr-parser",
-]
-
-[[package]]
-name = "saphyr-parser"
-version = "0.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f5c8d67f5937b6b8a42c0d6038d90571ca3d8a99cc4adae69e490ba0acc6bf1"
-dependencies = [
- "arraydeque",
- "hashlink",
-]
-
-[[package]]
 name = "schannel"
 version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2278,11 +2246,11 @@ dependencies = [
  "markdown-it-tasklist",
  "markup",
  "salvo",
- "saphyr",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "yaml-rust2",
 ]
 
 [[package]]
@@ -3224,6 +3192,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56c1936c4cc7a1c9ab21a1ebb602eb942ba868cbd44a99cb7cdc5892335e1c85"
 dependencies = [
  "linked-hash-map",
+]
+
+[[package]]
+name = "yaml-rust2"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18b783b2c2789414f8bb84ca3318fc9c2d7e7be1c22907d37839a58dedb369d3"
+dependencies = [
+ "arraydeque",
+ "encoding_rs",
+ "hashlink",
 ]
 
 [[package]]
