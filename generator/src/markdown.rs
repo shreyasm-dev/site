@@ -5,13 +5,13 @@ use markdown_it::{
 };
 use markdown_it_front_matter::FrontMatter;
 use std::collections::HashMap;
-use yaml_rust2::{Yaml, YamlLoader};
+use yaml_rust2::YamlLoader;
 
-use crate::content::components::resource::Resource;
+use crate::util::yaml_to_string;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MarkdownOutput {
-  pub frontmatter: HashMap<Yaml, Yaml>,
+  pub frontmatter: HashMap<String, String>,
   pub content: String,
 }
 
@@ -54,7 +54,7 @@ pub fn render(markdown: &str) -> MarkdownOutput {
       if let Some(fm) = fm.first() {
         if let Some(fm) = fm.as_hash() {
           for (key, value) in fm {
-            frontmatter.insert(key.clone(), value.clone());
+            frontmatter.insert(yaml_to_string(key), yaml_to_string(value));
           }
         }
       }
@@ -199,25 +199,6 @@ impl InlineRule for ComponentScanner {
     let len = state.pos - start;
     state.pos = start;
     match name.as_str() {
-      "resource" => Some(
-        Resource {
-          kind: &args
-            .get(0)
-            .and_then(|arg| match arg {
-              ComponentArg::String(s) => Some(s.clone()),
-              _ => None,
-            })
-            .unwrap_or_default(),
-          path: &args
-            .get(1)
-            .and_then(|arg| match arg {
-              ComponentArg::String(s) => Some(s.clone()),
-              _ => None,
-            })
-            .unwrap_or_default(),
-        }
-        .to_string(),
-      ),
       "hello" => Some(format!(
         "hello, {}!",
         args

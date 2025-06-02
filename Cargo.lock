@@ -620,6 +620,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "generator"
+version = "0.1.0"
+dependencies = [
+ "include_dir",
+ "katex",
+ "markdown-it",
+ "markdown-it-autolink",
+ "markdown-it-footnote",
+ "markdown-it-front-matter",
+ "markdown-it-heading-anchors",
+ "markdown-it-tasklist",
+ "proc-macro2",
+ "quote",
+ "yaml-rust2",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1007,23 +1024,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "include_directory"
-version = "0.1.1"
+name = "include_dir"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc51bf21d9c8c76d0d55b3926add7fde9b595719ee0d5710d46f8ee66131cca9"
+checksum = "923d117408f1e49d914f1a379a309cffe4f18c05cf4e3d12e613a15fc81bd0dd"
 dependencies = [
- "include_directory_macros",
- "mime",
+ "include_dir_macros",
 ]
 
 [[package]]
-name = "include_directory_macros"
-version = "0.1.0"
+name = "include_dir_macros"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35011b5de7391d94ea631aa584d09a88b2e877505a614e4952970214f2fd1b90"
+checksum = "7cab85a7ed0bd5f0e76d93846e0147172bed2e2d3f859bcc33a8d9699cad1a75"
 dependencies = [
- "mime",
- "new_mime_guess",
  "proc-macro2",
  "quote",
 ]
@@ -1360,16 +1374,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "new_mime_guess"
-version = "4.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02a2dfb3559d53e90b709376af1c379462f7fb3085a0177deb73e6ea0d99eff4"
-dependencies = [
- "mime",
- "unicase",
-]
-
-[[package]]
 name = "nix"
 version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1496,6 +1500,48 @@ name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
+
+[[package]]
+name = "phf"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fd6780a80ae0c52cc120a26a1a42c1ae51b247a253e4e06113d23d2c2edd078"
+dependencies = [
+ "phf_macros",
+ "phf_shared",
+]
+
+[[package]]
+name = "phf_generator"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d"
+dependencies = [
+ "phf_shared",
+ "rand 0.8.5",
+]
+
+[[package]]
+name = "phf_macros"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f84ac04429c13a7ff43785d75ad27569f2951ce0ffd30a3321230db2fc727216"
+dependencies = [
+ "phf_generator",
+ "phf_shared",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.11.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
+dependencies = [
+ "siphasher",
+]
 
 [[package]]
 name = "pin-project"
@@ -2233,24 +2279,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "siphasher"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
+
+[[package]]
 name = "site"
 version = "0.1.0"
 dependencies = [
- "include_directory",
- "katex",
- "markdown-it",
- "markdown-it-autolink",
- "markdown-it-footnote",
- "markdown-it-front-matter",
- "markdown-it-heading-anchors",
- "markdown-it-tasklist",
+ "generator",
+ "include_dir",
  "markup",
+ "phf",
  "salvo",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
  "tracing-subscriber",
- "yaml-rust2",
 ]
 
 [[package]]

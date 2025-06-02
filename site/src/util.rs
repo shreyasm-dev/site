@@ -1,11 +1,7 @@
-use crate::{
-  content::{Content, main::Main},
-  markdown::render,
-};
+use crate::content::{Content, main::Main};
 use salvo::prelude::*;
-use yaml_rust2::Yaml;
 
-pub struct ResourceHandler<T, F>(F)
+pub struct ResourceHandler<T, F>(String, F)
 where
   T: Scribe,
   F: Fn(String) -> T + Sync + Send;
@@ -24,8 +20,8 @@ where
     _ctrl: &mut FlowCtrl,
   ) {
     let path = req.param::<&str>("path").unwrap_or_default();
-    if let Some(data) = Content::of("style", path) {
-      res.render((self.0)(data));
+    if let Some((data, _)) = Content::of(&self.0, path) {
+      res.render((self.1)(data));
     } else {
       res.status_code(StatusCode::NOT_FOUND);
     }
@@ -36,7 +32,7 @@ pub fn resource_router<T: Scribe + 'static, F: Fn(String) -> T + Send + Sync + '
   kind: &str,
   scribe: F,
 ) -> Router {
-  Router::with_path(format!("{}/{{**path}}", kind)).get(ResourceHandler(scribe))
+  Router::with_path(format!("{}/{{**path}}", kind)).get(ResourceHandler(kind.to_string(), scribe))
 }
 
 pub struct PageHandler;
@@ -52,16 +48,13 @@ impl Handler for PageHandler {
     _ctrl: &mut FlowCtrl,
   ) {
     for suffix in [".md", "/index.md"] {
-      if let Some(content) = Content::of("page", &format!("{}{}", req.uri().path(), suffix)) {
-        let rendered = render(&content);
+      if let Some((content, frontmatter)) =
+        Content::of("page", &format!("{}{}", req.uri().path(), suffix))
+      {
         res.render(Text::Html(
           Main {
-            title: rendered
-              .frontmatter
-              .get(&Yaml::String("title".to_string()))
-              .map(|value| value.as_str())
-              .flatten(),
-            content: &rendered.content,
+            title: frontmatter.map(|fm| fm.get("title").cloned()).flatten(),
+            content: &content,
           }
           .to_string(),
         ));
