@@ -1,8 +1,6 @@
-use content::Content;
 use salvo::{catcher::Catcher, prelude::*};
 use util::{PageHandler, resource_router};
 
-mod content;
 mod error;
 mod util;
 

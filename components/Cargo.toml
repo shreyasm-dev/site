@@ -1,0 +1,7 @@
+[package]
+name = "components"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+markup = "0.15.0"

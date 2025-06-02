@@ -21,7 +21,28 @@ pub fn content(input: TokenStream) -> TokenStream {
   let frontmatter = traverse_frontmatter(&frontmatter);
 
   quote! {
-    (#data, #frontmatter)
+    pub struct Content;
+
+    impl Content {
+      pub fn of<'a>(
+        kind: &'a str,
+        path: &'a str,
+      ) -> Option<(String, Option<&'a phf::Map<&'static str, &'static str>>)> {
+
+        static CONTENT: include_dir::Dir<'_> = #data;
+        static FRONTMATTER: phf::Map<&'static str, phf::Map<&'static str, &'static str>> = #frontmatter;
+
+        let path = std::path::Path::new(kind).join(path.trim_start_matches("/"));
+        let path_str = path.clone();
+        let path_str = path_str.to_str().unwrap();
+
+        CONTENT.get_file(path).and_then(|file| {
+          file
+            .contents_utf8()
+            .map(|s| (s.to_string(), FRONTMATTER.get(path_str)))
+        })
+      }
+    }
   }
   .into()
 }

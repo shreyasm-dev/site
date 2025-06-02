@@ -1,5 +1,7 @@
-use crate::content::{Content, main::Main};
+use components::page::Main;
 use salvo::prelude::*;
+
+generator::content!();
 
 pub struct ResourceHandler<T, F>(String, F)
 where
