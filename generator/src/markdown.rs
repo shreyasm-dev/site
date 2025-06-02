@@ -1,3 +1,4 @@
+use components::style::Style;
 use markdown_it::{
   MarkdownIt, Node, NodeValue, Renderer,
   parser::inline::{InlineRule, InlineState},
@@ -35,8 +36,9 @@ pub fn render(markdown: &str) -> MarkdownOutput {
   );
   markdown_it_tasklist::add(md);
 
-  md.inline.add_rule::<ComponentScanner>();
   md.inline.add_rule::<MathScanner>();
+  md.inline.add_rule::<ComponentScanner>();
+  md.inline.add_rule::<EmojiScanner>();
 
   let mut output = md.parse(markdown);
   let mut frontmatter = HashMap::new();
@@ -95,6 +97,10 @@ impl InlineRule for MathScanner {
   const MARKER: char = '$';
 
   fn run(state: &mut InlineState) -> Option<(Node, usize)> {
+    if !state.src[state.pos..].starts_with(Self::MARKER) {
+      return None;
+    }
+
     let start = state.pos;
     let display;
     let mut content = String::new();
@@ -131,6 +137,10 @@ impl InlineRule for ComponentScanner {
   const MARKER: char = '@';
 
   fn run(state: &mut InlineState) -> Option<(Node, usize)> {
+    if !state.src[state.pos..].starts_with(Self::MARKER) {
+      return None;
+    }
+
     let start = state.pos;
     let mut args = Vec::new();
     let mut name = String::new();
@@ -199,6 +209,17 @@ impl InlineRule for ComponentScanner {
     let len = state.pos - start;
     state.pos = start;
     match name.as_str() {
+      "style" => {
+        if args.len() != 1 {
+          return None; // style component requires exactly one argument
+        }
+
+        match args.get(0) {
+          Some(ComponentArg::String(s)) => Some(s),
+          _ => None,
+        }
+        .map(|name| Style { name }.to_string())
+      }
       "hello" => Some(format!(
         "hello, {}!",
         args
@@ -212,5 +233,76 @@ impl InlineRule for ComponentScanner {
       _ => None,
     }
     .map(|content| (Node::new(HtmlInline { content }), len))
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Emoji {
+  pub name: String,
+  pub offset: usize,
+}
+
+impl NodeValue for Emoji {
+  fn render(&self, _node: &Node, fmt: &mut dyn Renderer) {
+    let result = emoji::search::search_name(&self.name);
+    fmt.text(
+      result
+        .get(self.offset)
+        .or(result.first())
+        .map(|e| e.glyph)
+        .unwrap_or_default(),
+    );
+  }
+}
+
+struct EmojiScanner;
+
+impl InlineRule for EmojiScanner {
+  const MARKER: char = ':';
+
+  fn run(state: &mut InlineState) -> Option<(Node, usize)> {
+    if !state.src[state.pos..].starts_with(Self::MARKER) {
+      return None;
+    }
+
+    let start = state.pos;
+    let mut name = String::new();
+    let mut offset = 0;
+
+    state.pos += 1;
+
+    while let Some(c) = state.src[state.pos..].chars().next() {
+      if c == ':' {
+        state.pos += 1;
+        break;
+      }
+
+      name.push(c);
+      state.pos += 1;
+    }
+
+    if let Some(c) = state.src[state.pos..].chars().next() {
+      if c.is_digit(10) {
+        state.pos += 1;
+
+        let mut offset_str = c.to_string();
+        while let Some(c) = state.src[state.pos..].chars().next() {
+          if !c.is_digit(10) {
+            break;
+          }
+
+          offset_str.push(c);
+          state.pos += 1;
+        }
+
+        if let Ok(num) = offset_str.parse::<usize>() {
+          offset = num;
+        }
+      }
+    }
+
+    let len = state.pos - start;
+    state.pos = start;
+    Some((Node::new(Emoji { name, offset }), len))
   }
 }

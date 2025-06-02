@@ -2,7 +2,7 @@
 title: "index"
 ---
 
-# xyz
+## xyz
 
 x $\int^a_bf(x)dx$
 
@@ -23,6 +23,8 @@ fn main() {
   println!("Hello, world!");
 }
 ```
+
+:cat:2
 
 @hello(world)
 

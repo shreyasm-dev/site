@@ -1,7 +1,6 @@
 use salvo::{catcher::Catcher, prelude::*};
 use util::{PageHandler, resource_router};
 
-mod error;
 mod util;
 
 #[tokio::main]
