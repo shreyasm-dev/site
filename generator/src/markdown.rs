@@ -1,3 +1,4 @@
+use crate::util::{Output, yaml_to_string};
 use components::style::Style;
 use markdown_it::{
   MarkdownIt, Node, NodeValue, Renderer,
@@ -8,15 +9,7 @@ use markdown_it_front_matter::FrontMatter;
 use std::collections::HashMap;
 use yaml_rust2::YamlLoader;
 
-use crate::util::yaml_to_string;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MarkdownOutput {
-  pub frontmatter: HashMap<String, String>,
-  pub content: String,
-}
-
-pub fn render(markdown: &str) -> MarkdownOutput {
+pub fn markdown(markdown: &str) -> Output {
   let md = &mut MarkdownIt::new();
   markdown_it::plugins::cmark::add(md);
   markdown_it::plugins::extra::add(md);
@@ -63,8 +56,8 @@ pub fn render(markdown: &str) -> MarkdownOutput {
     }
   }
 
-  MarkdownOutput {
-    frontmatter,
+  Output {
+    metadata: frontmatter,
     content: md.parse(markdown).render(),
   }
 }

@@ -1,10 +1,14 @@
-use std::collections::HashMap;
-
-use crate::markdown::render;
 use include_dir::Dir;
 use proc_macro2::TokenStream;
 use quote::quote;
+use std::collections::HashMap;
 use yaml_rust2::Yaml;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Output {
+  pub metadata: HashMap<String, String>,
+  pub content: String,
+}
 
 pub fn yaml_to_string(yaml: &Yaml) -> String {
   match yaml {
@@ -12,13 +16,12 @@ pub fn yaml_to_string(yaml: &Yaml) -> String {
     Yaml::Integer(i) => i.to_string(),
     Yaml::Real(r) => r.to_string(),
     Yaml::Boolean(b) => b.to_string(),
-    _ => panic!("Unsupported YAML type: {:?}", yaml),
+    _ => panic!("unsupported yaml type: {:?}", yaml),
   }
 }
 
-pub fn traverse_frontmatter(map: &HashMap<String, HashMap<String, String>>) -> TokenStream {
+pub fn traverse_metadata(map: &HashMap<String, HashMap<String, String>>) -> TokenStream {
   let mut entries = Vec::new();
-
   for (key, value) in map {
     let key = key.to_string();
     let value = value
@@ -46,32 +49,36 @@ pub fn traverse_frontmatter(map: &HashMap<String, HashMap<String, String>>) -> T
 
 pub fn traverse_dir<'a>(
   dir: &'a Dir,
-  frontmatter: &mut HashMap<String, HashMap<String, String>>,
+  metadata: &mut HashMap<String, HashMap<String, String>>,
+  processor: &dyn Fn(&str) -> Output,
 ) -> TokenStream {
   let mut children = Vec::<TokenStream>::new();
 
   for entry in dir.entries() {
     if let Some(dir) = entry.as_dir() {
-      let tokens = traverse_dir(dir, frontmatter);
+      let path = dir.path().to_str().unwrap();
+      let tokens = traverse_dir(dir, metadata, processor);
       children.push(
         quote! {
-          include_dir::DirEntry::Dir(#tokens)
+          #path => #tokens
         }
         .into(),
       );
     } else if let Some(file) = entry.as_file() {
       let path = file.path().to_str().unwrap();
-      let content = if file.path().extension().is_some_and(|ext| ext == "md") {
-        let rendered = render(file.contents_utf8().unwrap());
-        frontmatter.insert(path.to_string(), rendered.frontmatter.clone());
-        rendered.content.bytes().collect()
-      } else {
-        file.contents().to_vec()
-      };
+      let content = file.contents_utf8().map(processor);
+
+      if let Some(ref rendered) = content {
+        metadata.insert(path.to_string(), rendered.metadata.clone());
+      }
+
+      let content = content
+        .map(|rendered| rendered.content.bytes().collect())
+        .unwrap_or(file.contents().to_vec());
 
       children.push(
         quote! {
-          include_dir::DirEntry::File(include_dir::File::new(#path, &[#(#content),*]))
+          #path => &[#(#content),*]
         }
         .into(),
       );
@@ -80,9 +87,7 @@ pub fn traverse_dir<'a>(
     }
   }
 
-  let path = dir.path().to_str().unwrap();
-
   quote! {
-    include_dir::Dir::new(#path, &[#(#children),*])
+    #(#children),*
   }
 }

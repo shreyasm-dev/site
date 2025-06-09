@@ -41,7 +41,6 @@ pub struct PageHandler;
 
 #[async_trait]
 impl Handler for PageHandler {
-  // TODO: do all ssr at compile time (proc macro)
   async fn handle(
     &self,
     req: &mut Request,
@@ -55,7 +54,7 @@ impl Handler for PageHandler {
       {
         res.render(Text::Html(
           Main {
-            title: frontmatter.map(|fm| fm.get("title").cloned()).flatten(),
+            title: frontmatter.get("title").cloned(),
             content: &content,
           }
           .to_string(),
