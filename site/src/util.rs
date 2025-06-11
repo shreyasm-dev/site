@@ -54,7 +54,7 @@ impl Handler for PageHandler {
       {
         res.render(Text::Html(
           Main {
-            title: frontmatter.get("title").cloned(),
+            title: frontmatter.title,
             content: &content,
           }
           .to_string(),

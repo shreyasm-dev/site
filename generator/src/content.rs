@@ -1,11 +1,12 @@
 use crate::{
   markdown::markdown,
-  util::{traverse_dir, traverse_metadata},
+  util::{Output, table_to_map, traverse_dir, traverse_metadata},
   verbatim::verbatim,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::collections::HashMap;
+use toml::Value;
 
 static CONTENT: include_dir::Dir<'_> = include_dir::include_dir!("content");
 
@@ -15,46 +16,22 @@ pub fn content(input: TokenStream) -> TokenStream {
     _ => panic!("expected no arguments"),
   };
 
-  let mut metadata = HashMap::new();
-
-  let page = traverse_dir(&CONTENT.get_dir("page").unwrap(), &mut metadata, &markdown);
-  let style = traverse_dir(&CONTENT.get_dir("style").unwrap(), &mut metadata, &verbatim);
-
-  let content = [
-    (
-      "page",
-      quote! {
-        phf::phf_map! {
-          #page
-        }
-      },
-    ),
-    (
-      "style",
-      quote! {
-        phf::phf_map! {
-          #style
-        }
-      },
-    ),
-  ]
-  .map(|(key, value)| quote! { #key => #value });
-
-  let metadata = traverse_metadata(&metadata);
-  let content = quote! {
-    phf::phf_map! {
-      #(#content),*
-    }
-  };
+  let (metadata, content, tags) = data(&[("page", &markdown), ("style", &verbatim)]);
 
   quote! {
+    #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+    struct Metadata<'a> {
+      pub title: Option<&'a str>,
+      pub tags: &'a [&'a str],
+    }
+
     pub struct Content;
 
     impl Content {
       pub fn of<'a>(
         kind: &'a str,
         path: &'a str,
-      ) -> Option<(String, &'a phf::Map<&'static str, &'static str>)> {
+      ) -> Option<(String, &'a Metadata<'static>)> {
         Self::of_raw(kind, path).map(|(content, metadata)|
           String::from_utf8(content)
             .map(|content| (content, metadata))
@@ -65,18 +42,78 @@ pub fn content(input: TokenStream) -> TokenStream {
       pub fn of_raw<'a>(
         kind: &'a str,
         path: &'a str,
-      ) -> Option<(Vec<u8>, &'a phf::Map<&'static str, &'static str>)> {
+      ) -> Option<(Vec<u8>, &'a Metadata<'static>)> {
         static CONTENT: phf::Map<&'static str, phf::Map<&'static str, &[u8]>> = #content;
-        static FRONTMATTER: phf::Map<&'static str, phf::Map<&'static str, &'static str>> = #metadata;
-        static EMPTY: phf::Map<&'static str, &'static str> = phf::phf_map! {};
+        static FRONTMATTER: phf::Map<&'static str, Metadata<'static>> = #metadata;
+        static EMPTY_METADATA: Metadata<'static> = Metadata {
+          title: None,
+          tags: &[],
+        };
 
         let path = &format!("{}/{}", kind, path.trim_start_matches("/"));
 
         CONTENT
           .get(kind)
-          .map(|map| map.get(path).map(|content| (content.to_vec(), FRONTMATTER.get(path).unwrap_or(&EMPTY))))
+          .map(|map| map.get(path).map(|content| (content.to_vec(), FRONTMATTER.get(path).unwrap_or(&EMPTY_METADATA))))
           .flatten()
+      }
+
+      pub fn tags() -> phf::Map<&'static str, &'static str> {
+        #tags
       }
     }
   }
+}
+
+pub fn data(input: &[(&str, &dyn Fn(&str) -> Output)]) -> (TokenStream, TokenStream, TokenStream) {
+  let mut metadata = HashMap::new();
+  let mut data = Vec::new();
+
+  for (name, processor) in input {
+    let content = traverse_dir(&CONTENT.get_dir(name).unwrap(), &mut metadata, &processor);
+    data.push((
+      name,
+      quote! {
+        phf::phf_map! {
+          #content
+        }
+      },
+    ));
+  }
+
+  let data = data.iter().map(|(key, value)| quote! { #key => #value });
+  let metadata = traverse_metadata(&metadata);
+
+  let mut tags = Vec::new();
+  let tag_table = table_to_map(
+    CONTENT
+      .get_file("tags.toml")
+      .unwrap()
+      .contents_utf8()
+      .unwrap()
+      .parse()
+      .unwrap(),
+  );
+
+  for (tag, description) in tag_table {
+    if let Value::String(description) = description {
+      tags.push(quote! {
+        #tag => #description
+      });
+    }
+  }
+
+  (
+    metadata,
+    quote! {
+      phf::phf_map! {
+        #(#data),*
+      }
+    },
+    quote! {
+      phf::phf_map! {
+        #(#tags),*
+      }
+    },
+  )
 }

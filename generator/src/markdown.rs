@@ -1,4 +1,4 @@
-use crate::util::{Output, yaml_to_string};
+use crate::util::{Metadata, Output, table_to_map};
 use components::style::Style;
 use markdown_it::{
   MarkdownIt, Node, NodeValue, Renderer,
@@ -6,8 +6,8 @@ use markdown_it::{
   plugins::html::html_inline::HtmlInline,
 };
 use markdown_it_front_matter::FrontMatter;
-use std::collections::HashMap;
-use yaml_rust2::YamlLoader;
+use std::{collections::HashMap, convert::identity};
+use toml::Table;
 
 pub fn markdown(markdown: &str) -> Output {
   let md = &mut MarkdownIt::new();
@@ -45,19 +45,31 @@ pub fn markdown(markdown: &str) -> Output {
     let fm = output.children.remove(0);
     let fm: &FrontMatter = fm.cast().unwrap(); // should be safe
 
-    if let Ok(fm) = YamlLoader::load_from_str(&fm.content) {
-      if let Some(fm) = fm.first() {
-        if let Some(fm) = fm.as_hash() {
-          for (key, value) in fm {
-            frontmatter.insert(yaml_to_string(key), yaml_to_string(value));
-          }
-        }
-      }
+    if let Ok(table) = fm.content.parse::<Table>().map(table_to_map) {
+      frontmatter = table;
     }
   }
 
+  let metadata = Metadata {
+    title: frontmatter
+      .get("title")
+      .and_then(|d| d.as_str().map(|s| s.to_string())),
+    tags: frontmatter
+      .get("tags")
+      .map(|d| {
+        d.as_array().map(|a| {
+          a.iter()
+            .map(|d| d.as_str().map(|s| s.to_string()))
+            .filter_map(identity)
+            .collect()
+        })
+      })
+      .flatten()
+      .unwrap_or_default(),
+  };
+
   Output {
-    metadata: frontmatter,
+    metadata,
     content: md.parse(markdown).render(),
   }
 }

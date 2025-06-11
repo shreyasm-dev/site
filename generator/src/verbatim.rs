@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-
-use crate::util::Output;
+use crate::util::{Metadata, Output};
 
 pub fn verbatim(input: &str) -> Output {
   Output {
-    metadata: HashMap::new(),
+    metadata: Metadata::default(),
     content: input.to_string(),
   }
 }

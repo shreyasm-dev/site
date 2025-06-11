@@ -2,41 +2,55 @@ use include_dir::Dir;
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::collections::HashMap;
-use yaml_rust2::Yaml;
+use toml::{Table, Value};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Output {
-  pub metadata: HashMap<String, String>,
+  pub metadata: Metadata,
   pub content: String,
 }
 
-pub fn yaml_to_string(yaml: &Yaml) -> String {
-  match yaml {
-    Yaml::String(s) => s.to_string(),
-    Yaml::Integer(i) => i.to_string(),
-    Yaml::Real(r) => r.to_string(),
-    Yaml::Boolean(b) => b.to_string(),
-    _ => panic!("unsupported yaml type: {:?}", yaml),
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Metadata {
+  pub title: Option<String>,
+  pub tags: Vec<String>,
+}
+
+impl Default for Metadata {
+  fn default() -> Self {
+    Self {
+      title: None,
+      tags: Vec::new(),
+    }
   }
 }
 
-pub fn traverse_metadata(map: &HashMap<String, HashMap<String, String>>) -> TokenStream {
+impl Into<TokenStream> for Metadata {
+  fn into(self) -> TokenStream {
+    let title = if let Some(title) = self.title {
+      quote! { Some(#title) }
+    } else {
+      quote! { None }
+    };
+    let tags = self.tags;
+
+    quote! {
+      Metadata {
+        title: #title,
+        tags: &[#(#tags),*],
+      }
+    }
+  }
+}
+
+pub fn traverse_metadata(map: &HashMap<String, Metadata>) -> TokenStream {
   let mut entries = Vec::new();
   for (key, value) in map {
     let key = key.to_string();
-    let value = value
-      .iter()
-      .map(|(k, v)| {
-        let k_str = k.to_string();
-        let v_str = v.to_string();
-        quote! { #k_str => #v_str }
-      })
-      .collect::<Vec<_>>();
+    let value = Into::<TokenStream>::into(value.clone());
 
     entries.push(quote! {
-      #key => phf::phf_map! {
-        #(#value),*
-      }
+      #key => #value
     });
   }
 
@@ -47,9 +61,17 @@ pub fn traverse_metadata(map: &HashMap<String, HashMap<String, String>>) -> Toke
   }
 }
 
+pub fn table_to_map(table: Table) -> HashMap<String, Value> {
+  let mut map = HashMap::new();
+  for (key, value) in table {
+    map.insert(key, value);
+  }
+  map
+}
+
 pub fn traverse_dir<'a>(
   dir: &'a Dir,
-  metadata: &mut HashMap<String, HashMap<String, String>>,
+  metadata: &mut HashMap<String, Metadata>,
   processor: &dyn Fn(&str) -> Output,
 ) -> TokenStream {
   let mut children = Vec::<TokenStream>::new();
