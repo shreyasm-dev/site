@@ -1,8 +1,8 @@
 use crate::{
   markdown::markdown,
-  minify::minify_html,
+  minify::{minify_css, minify_html},
+  sass::sass,
   util::{Output, table_to_map, traverse_dir, traverse_metadata},
-  verbatim::verbatim,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -17,10 +17,16 @@ pub fn content(input: TokenStream) -> TokenStream {
     _ => panic!("expected no arguments"),
   };
 
-  type F = fn(&[u8]) -> Output;
+  type F = fn(&[u8], &str) -> Output;
   let (metadata, content, tags) = data(&[
-    ("page", (|input| minify_html(markdown(input))) as F),
-    ("style", verbatim as F),
+    (
+      "page",
+      (|input, filename| minify_html(markdown(input, filename))) as F,
+    ),
+    (
+      "style",
+      (|input, filename| minify_css(sass(input, filename))) as F,
+    ),
   ]);
 
   quote! {
@@ -72,7 +78,7 @@ pub fn content(input: TokenStream) -> TokenStream {
 
 pub fn data<F>(input: &[(&str, F)]) -> (TokenStream, TokenStream, TokenStream)
 where
-  F: Fn(&[u8]) -> Output,
+  F: Fn(&[u8], &str) -> Output,
 {
   let mut metadata = HashMap::new();
   let mut data = Vec::new();

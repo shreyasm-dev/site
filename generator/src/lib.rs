@@ -1,8 +1,8 @@
 mod content;
 mod markdown;
 mod minify;
+mod sass;
 mod util;
-mod verbatim;
 
 use proc_macro::TokenStream;
 

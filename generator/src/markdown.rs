@@ -9,7 +9,7 @@ use markdown_it_front_matter::FrontMatter;
 use std::{collections::HashMap, convert::identity};
 use toml::Table;
 
-pub fn markdown(markdown: &[u8]) -> Output {
+pub fn markdown(markdown: &[u8], filename: &str) -> Output {
   let markdown = String::from_utf8(markdown.to_vec()).unwrap();
 
   let md = &mut MarkdownIt::new();
@@ -72,7 +72,8 @@ pub fn markdown(markdown: &[u8]) -> Output {
 
   Output {
     metadata,
-    content: output.render().as_bytes().to_vec(),
+    content: output.render().into_bytes(),
+    filename: filename.to_string(),
   }
 }
 

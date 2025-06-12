@@ -8,7 +8,9 @@ proc-macro = true
 
 [dependencies]
 components = { path = "../components" }
+css-minify = "0.5.2"
 emoji = "0.2.1"
+grass = "0.13.4"
 include_dir = "0.7.4"
 katex = "0.4.6"
 markdown-it = "0.6.1"
