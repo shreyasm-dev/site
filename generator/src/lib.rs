@@ -1,5 +1,6 @@
 mod content;
 mod markdown;
+mod minify;
 mod util;
 mod verbatim;
 

@@ -1,5 +1,6 @@
 use crate::{
   markdown::markdown,
+  minify::minify_html,
   util::{Output, table_to_map, traverse_dir, traverse_metadata},
   verbatim::verbatim,
 };
@@ -16,7 +17,11 @@ pub fn content(input: TokenStream) -> TokenStream {
     _ => panic!("expected no arguments"),
   };
 
-  let (metadata, content, tags) = data(&[("page", &markdown), ("style", &verbatim)]);
+  type F = fn(&[u8]) -> Output;
+  let (metadata, content, tags) = data(&[
+    ("page", (|input| minify_html(markdown(input))) as F),
+    ("style", verbatim as F),
+  ]);
 
   quote! {
     #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
@@ -65,7 +70,10 @@ pub fn content(input: TokenStream) -> TokenStream {
   }
 }
 
-pub fn data(input: &[(&str, &dyn Fn(&str) -> Output)]) -> (TokenStream, TokenStream, TokenStream) {
+pub fn data<F>(input: &[(&str, F)]) -> (TokenStream, TokenStream, TokenStream)
+where
+  F: Fn(&[u8]) -> Output,
+{
   let mut metadata = HashMap::new();
   let mut data = Vec::new();
 

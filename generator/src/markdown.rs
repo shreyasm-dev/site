@@ -9,12 +9,14 @@ use markdown_it_front_matter::FrontMatter;
 use std::{collections::HashMap, convert::identity};
 use toml::Table;
 
-pub fn markdown(markdown: &str) -> Output {
+pub fn markdown(markdown: &[u8]) -> Output {
+  let markdown = String::from_utf8(markdown.to_vec()).unwrap();
+
   let md = &mut MarkdownIt::new();
   markdown_it::plugins::cmark::add(md);
   markdown_it::plugins::extra::add(md);
   markdown_it::plugins::html::add(md);
-  markdown_it::plugins::sourcepos::add(md);
+  // markdown_it::plugins::sourcepos::add(md);
   markdown_it_autolink::add(md);
   markdown_it_footnote::add(md);
   markdown_it_front_matter::add(md);
@@ -33,7 +35,7 @@ pub fn markdown(markdown: &str) -> Output {
   md.inline.add_rule::<ComponentScanner>();
   md.inline.add_rule::<EmojiScanner>();
 
-  let mut output = md.parse(markdown);
+  let mut output = md.parse(&markdown);
   let mut frontmatter = HashMap::new();
 
   if output
@@ -70,7 +72,7 @@ pub fn markdown(markdown: &str) -> Output {
 
   Output {
     metadata,
-    content: md.parse(markdown).render(),
+    content: output.render().as_bytes().to_vec(),
   }
 }
 

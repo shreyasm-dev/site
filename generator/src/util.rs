@@ -7,7 +7,7 @@ use toml::{Table, Value};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Output {
   pub metadata: Metadata,
-  pub content: String,
+  pub content: Vec<u8>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -72,7 +72,7 @@ pub fn table_to_map(table: Table) -> HashMap<String, Value> {
 pub fn traverse_dir<'a>(
   dir: &'a Dir,
   metadata: &mut HashMap<String, Metadata>,
-  processor: &dyn Fn(&str) -> Output,
+  processor: &dyn Fn(&[u8]) -> Output,
 ) -> TokenStream {
   let mut children = Vec::<TokenStream>::new();
 
@@ -88,15 +88,11 @@ pub fn traverse_dir<'a>(
       );
     } else if let Some(file) = entry.as_file() {
       let path = file.path().to_str().unwrap();
-      let content = file.contents_utf8().map(processor);
+      let content = processor(file.contents());
 
-      if let Some(ref rendered) = content {
-        metadata.insert(path.to_string(), rendered.metadata.clone());
-      }
+      metadata.insert(path.to_string(), content.metadata.clone());
 
-      let content = content
-        .map(|rendered| rendered.content.bytes().collect())
-        .unwrap_or(file.contents().to_vec());
+      let content = content.content;
 
       children.push(
         quote! {
