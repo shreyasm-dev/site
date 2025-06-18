@@ -24,8 +24,8 @@ pub fn markdown(markdown: &[u8], filename: &str) -> Output {
     md,
     markdown_it_heading_anchors::HeadingAnchorOptions {
       id_on_heading: true,
-      inner_html: "¶".to_string(),
-      position: markdown_it_heading_anchors::AnchorPosition::End,
+      inner_html: "#".to_string(),
+      position: markdown_it_heading_anchors::AnchorPosition::Start,
       ..Default::default()
     },
   );
