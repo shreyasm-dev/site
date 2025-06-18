@@ -266,7 +266,7 @@ impl NodeValue for Emoji {
 struct EmojiScanner;
 
 impl InlineRule for EmojiScanner {
-  const MARKER: char = ':';
+  const MARKER: char = '{';
 
   fn run(state: &mut InlineState) -> Option<(Node, usize)> {
     if !state.src[state.pos..].starts_with(Self::MARKER) {
@@ -280,7 +280,7 @@ impl InlineRule for EmojiScanner {
     state.pos += 1;
 
     while let Some(c) = state.src[state.pos..].chars().next() {
-      if c == ':' {
+      if c == '}' {
         state.pos += 1;
         break;
       }

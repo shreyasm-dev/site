@@ -29,8 +29,15 @@ a {
   font-weight: bold;
 }
 
-a, a:visited {
+a,
+a:visited {
   color: var(--link);
+}
+
+blockquote {
+  margin: 0;
+  padding-left: 1rem;
+  border-left: solid var(--link) 3px;
 }
 
 // layout
@@ -55,7 +62,16 @@ header {
 main {
   flex-grow: 1;
   margin: 0 auto;
+  padding: 20px;
   width: 800px;
+  box-sizing: border-box;
+}
+
+@media (width < 800px) {
+  main {
+    width: 100vw;
+    overflow-x: scroll;
+  }
 }
 
 footer {

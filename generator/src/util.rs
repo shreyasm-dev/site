@@ -75,18 +75,11 @@ pub fn traverse_dir<'a>(
   metadata: &mut HashMap<String, Metadata>,
   processor: &dyn Fn(&[u8], &str) -> Output,
 ) -> TokenStream {
-  let mut children = Vec::<TokenStream>::new();
+  let mut children = Vec::new();
 
   for entry in dir.entries() {
     if let Some(dir) = entry.as_dir() {
-      let path = dir.path().to_str().unwrap();
-      let tokens = traverse_dir(dir, metadata, processor);
-      children.push(
-        quote! {
-          #path => #tokens
-        }
-        .into(),
-      );
+      children.push(traverse_dir(dir, metadata, processor));
     } else if let Some(file) = entry.as_file() {
       let path = file.path().to_str().unwrap();
       let content = processor(
