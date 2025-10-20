@@ -29,7 +29,7 @@ These are some of my favourites, arranged in rough order (a few of them near the
 - [Lapwing in Flight](lapwing-in-flight)
 - [Wagtail Examining Dragonfly](wagtail-examining-dragonfly)
 - [Sparrow-Lark in Sand](sparrow-lark-in-sand)
-- [Wagtail on Rock](wagtail-on-rock)
+- [Wagtail on Rock 1](wagtail-on-rock-1)
 - [Kingfisher in Flight](kingfisher-in-flight)
 - [Dragonfly on Grass](dragonfly-on-grass)
 - [Butterfly 1](butterfly-1)
