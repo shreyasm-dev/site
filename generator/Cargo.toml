@@ -3,15 +3,11 @@ name = "generator"
 version = "0.1.0"
 edition = "2024"
 
-[lib]
-proc-macro = true
-
 [dependencies]
 components = { path = "../components" }
 css-minify = "0.5.2"
 emoji = "0.2.1"
 grass = "0.13.4"
-include_dir = "0.7.4"
 katex = "0.4.6"
 little_exif = "0.6.8"
 markdown-it = "0.6.1"
@@ -21,6 +17,6 @@ markdown-it-front-matter = "0.3.0"
 markdown-it-heading-anchors = "0.3.0"
 markdown-it-tasklist = "0.2.0"
 minify-html-onepass = "0.16.4"
-proc-macro2 = "1.0.95"
-quote = "1.0.40"
+titlecase = "3.6.0"
 toml = "0.8.23"
+walkdir = "2.5.0"

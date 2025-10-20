@@ -1,15 +1,18 @@
-use crate::util::{Metadata, Output, table_to_map};
-use components::style::Style;
+use crate::{
+  minify::minify_html,
+  util::{Output, table_to_map},
+};
+use components::{page::Main, style::Style, types::Metadata};
 use markdown_it::{
   MarkdownIt, Node, NodeValue, Renderer,
   parser::inline::{InlineRule, InlineState},
   plugins::html::html_inline::HtmlInline,
 };
 use markdown_it_front_matter::FrontMatter;
-use std::{collections::HashMap, convert::identity};
+use std::{collections::HashMap, convert::identity, path::PathBuf};
 use toml::Table;
 
-pub fn markdown(markdown: &[u8], filename: &str) -> Output {
+pub fn markdown(markdown: &[u8], path: &str) -> Vec<Output> {
   let markdown = String::from_utf8(markdown.to_vec()).unwrap();
 
   let md = &mut MarkdownIt::new();
@@ -68,14 +71,18 @@ pub fn markdown(markdown: &[u8], filename: &str) -> Output {
       })
       .flatten()
       .unwrap_or_default(),
-    exif: None,
   };
 
-  Output {
-    metadata,
-    content: output.render().into_bytes(),
-    filename: filename.to_string(),
-  }
+  vec![minify_html(Output {
+    // metadata,
+    content: Main {
+      title: metadata.title.as_deref(),
+      content: &output.render(),
+    }
+    .to_string()
+    .into_bytes(),
+    path: PathBuf::from(path).with_extension("html"),
+  })]
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
