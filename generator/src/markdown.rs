@@ -68,6 +68,7 @@ pub fn markdown(markdown: &[u8], filename: &str) -> Output {
       })
       .flatten()
       .unwrap_or_default(),
+    exif: None,
   };
 
   Output {

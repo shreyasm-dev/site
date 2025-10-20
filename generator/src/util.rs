@@ -1,6 +1,6 @@
 use include_dir::Dir;
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{ToTokens, quote};
 use std::collections::HashMap;
 use toml::{Table, Value};
 
@@ -15,6 +15,7 @@ pub struct Output {
 pub struct Metadata {
   pub title: Option<String>,
   pub tags: Vec<String>,
+  pub exif: Option<Exif>,
 }
 
 impl Default for Metadata {
@@ -22,6 +23,7 @@ impl Default for Metadata {
     Self {
       title: None,
       tags: Vec::new(),
+      exif: None,
     }
   }
 }
@@ -34,13 +36,42 @@ impl Into<TokenStream> for Metadata {
       quote! { None }
     };
     let tags = self.tags;
+    let exif = self.exif;
 
     quote! {
       Metadata {
         title: #title,
         tags: &[#(#tags),*],
+        exif: #exif,
       }
     }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Exif {
+  pub make: Option<String>,
+  pub model: Option<String>,
+  pub lens: Option<String>,
+  pub aperture: Option<(u32, u32)>,
+  pub f: Option<(u32, u32)>,
+  pub iso: Option<u16>,
+  pub iso_speed: Option<u32>,
+  pub exposure_time: Option<(u32, u32)>,
+  pub focal_length: Option<(u32, u32)>,
+}
+
+impl Into<TokenStream> for Exif {
+  fn into(self) -> TokenStream {
+    quote! {
+      Exif {}
+    }
+  }
+}
+
+impl ToTokens for Exif {
+  fn to_tokens(&self, tokens: &mut TokenStream) {
+    tokens.extend(Into::<TokenStream>::into(self.clone()));
   }
 }
 

@@ -3,6 +3,7 @@ use crate::{
   minify::{minify_css, minify_html},
   sass::sass,
   util::{Output, table_to_map, traverse_dir, traverse_metadata},
+  exif::exif,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -27,13 +28,28 @@ pub fn content(input: TokenStream) -> TokenStream {
       "style",
       (|input, filename| minify_css(sass(input, filename))) as F,
     ),
+    ("image", exif),
   ]);
 
   quote! {
-    #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+    #[derive(Debug, Clone, PartialEq, Eq, Default)]
     struct Metadata<'a> {
       pub title: Option<&'a str>,
       pub tags: &'a [&'a str],
+      pub exif: Option<Exif>,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub struct Exif {
+      pub make: Option<String>,
+      pub model: Option<String>,
+      pub lens: Option<String>,
+      pub aperture: Option<(u32, u32)>,
+      pub f: Option<(u32, u32)>,
+      pub iso: Option<u16>,
+      pub iso_speed: Option<u32>,
+      pub exposure_time: Option<(u32, u32)>,
+      pub focal_length: Option<(u32, u32)>,
     }
 
     pub struct Content;
@@ -59,6 +75,7 @@ pub fn content(input: TokenStream) -> TokenStream {
         static EMPTY_METADATA: Metadata<'static> = Metadata {
           title: None,
           tags: &[],
+          exif: None,
         };
 
         let path = &format!("{}/{}", kind, path.trim_start_matches("/"));
