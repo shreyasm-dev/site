@@ -1,9 +1,15 @@
-use std::{collections::HashMap, fs, path::{Path, PathBuf}};
+use components::types::Metadata;
+use std::{
+  collections::HashMap,
+  fs,
+  path::{Path, PathBuf},
+};
 use toml::{Table, Value};
 use walkdir::WalkDir;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Output {
+  pub metadata: Metadata,
   pub content: Vec<u8>,
   pub path: PathBuf,
 }
@@ -16,7 +22,12 @@ pub fn table_to_map(table: Table) -> HashMap<String, Value> {
   map
 }
 
-pub fn transform(kind: &str, transform: fn(&[u8], &str) -> Vec<Output>) {
+pub fn transform(
+  kind: &str,
+  transform: fn(&[u8], &str, HashMap<String, Vec<Output>>) -> Vec<Output>,
+  tags: &mut HashMap<String, Vec<Output>>,
+  clean: bool,
+) {
   std::env::set_current_dir(format!("content/{}", kind)).unwrap();
 
   for entry in WalkDir::new(".")
@@ -26,8 +37,16 @@ pub fn transform(kind: &str, transform: fn(&[u8], &str) -> Vec<Output>) {
   {
     let data = std::fs::read(entry.path()).unwrap();
     let path = entry.path().to_str().unwrap();
-    
-    for output in transform(&data, path) {
+
+    for output in transform(&data, path, tags.clone()) {
+      if clean {
+        for tag in output.metadata.clone().tags {
+          let mut new = tags.get(&tag).cloned().unwrap_or_default();
+          new.push(output.clone());
+          tags.insert(tag, new);
+        }
+      }
+
       let path = Path::new("../../out").join(output.path);
 
       fs::create_dir_all(path.parent().unwrap()).unwrap();

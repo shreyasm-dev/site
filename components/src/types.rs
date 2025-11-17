@@ -1,6 +1,9 @@
+use chrono::NaiveDate;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Metadata {
   pub title: Option<String>,
+  pub date: Option<NaiveDate>,
   pub tags: Vec<String>,
 }
 
@@ -8,6 +11,7 @@ impl Default for Metadata {
   fn default() -> Self {
     Self {
       title: None,
+      date: None,
       tags: Vec::new(),
     }
   }

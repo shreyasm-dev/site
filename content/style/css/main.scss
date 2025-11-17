@@ -24,6 +24,21 @@ html {
   font-family: serif;
 }
 
+.caption {
+  font-size: medium;
+  opacity: 0.6;
+}
+
+.tags {
+  a {
+    font-size: medium;
+
+    + a {
+      margin-left: 1em;
+    }
+  }
+}
+
 a {
   text-decoration: none;
   font-weight: bold;

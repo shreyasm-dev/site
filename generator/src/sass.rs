@@ -1,9 +1,10 @@
 use crate::{minify::minify_css, util::Output};
-use std::path::PathBuf;
+use components::types::Metadata;
+use std::{collections::HashMap, path::PathBuf};
 
-pub fn sass(input: &[u8], path: &str) -> Vec<Output> {
+pub fn sass(input: &[u8], path: &str, _: HashMap<String, Vec<Output>>) -> Vec<Output> {
   vec![minify_css(Output {
-    // metadata: Metadata::default(),
+    metadata: Metadata::default(),
     content: grass::from_string(
       String::from_utf8(input.to_vec()).unwrap(),
       &grass::Options::default(),

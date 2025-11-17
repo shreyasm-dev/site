@@ -4,6 +4,6 @@ Hello! I am Shreyas Muppana, currently in 12th grade at Stanford Online High Sch
 
 Some links:
 
-- [Blog](/blog)
+- [Posts](/posts)
 - [Reading](/reading)
 - [Photography](/photography)

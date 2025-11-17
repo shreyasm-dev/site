@@ -1,11 +1,23 @@
 use crate::{markdown::markdown, util::Output};
-use components::types::Exif;
+use chrono::NaiveDateTime;
+use components::types::{Exif, Metadata};
 use little_exif::{exif_tag::ExifTag, filetype::FileExtension};
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
-pub fn image(input: &[u8], path: &str) -> Vec<Output> {
+pub fn image(input: &[u8], path: &str, tags: HashMap<String, Vec<Output>>) -> Vec<Output> {
   let exif =
     little_exif::metadata::Metadata::new_from_vec(&input.to_vec(), FileExtension::JPEG).unwrap();
+
+  let date = exif
+    .get_tag(&ExifTag::DateTimeOriginal("".to_string()))
+    .collect::<Vec<_>>()
+    .get(0)
+    .and_then(|x| match x {
+      ExifTag::DateTimeOriginal(s) => NaiveDateTime::parse_from_str(s, "%Y:%m:%d %H:%M:%S").ok(),
+      _ => unreachable!(),
+    })
+    .map(|d| d.date());
+
   let exif = Exif {
     make: exif
       .get_tag(&ExifTag::Make("".to_string()))
@@ -92,13 +104,20 @@ pub fn image(input: &[u8], path: &str) -> Vec<Output> {
 
   vec![
     vec![Output {
+      metadata: Metadata {
+        title: Some(title.clone()),
+        date,
+        tags: Vec::new(),
+      },
       content: input.to_vec(),
       path: path.into(),
     }],
     markdown(
       &format!(
         "---
-title=\"{0}\"
+title = \"{0}\"
+date = \"{3}\"
+tags = [\"photography\"]
 ---
 
 # {0}
@@ -107,9 +126,13 @@ title=\"{0}\"
         title,
         PathBuf::from(path).file_name().unwrap().to_str().unwrap(),
         exif.to_string(),
+        date
+          .map(|d| d.format("%Y-%m-%d").to_string())
+          .unwrap_or_default(),
       )
       .into_bytes(),
       PathBuf::from(path).with_extension("md").to_str().unwrap(),
+      tags,
     ),
   ]
   .concat()

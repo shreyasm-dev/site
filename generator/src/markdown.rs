@@ -2,19 +2,20 @@ use crate::{
   minify::minify_html,
   util::{Output, table_to_map},
 };
+use chrono::NaiveDate;
 use components::{page::Main, style::Style, types::Metadata};
+use itertools::Itertools;
+use lazy_regex::regex_replace_all;
 use markdown_it::{
   MarkdownIt, Node, NodeValue, Renderer,
-  parser::inline::{InlineRule, InlineState},
+  parser::inline::{InlineRule, InlineState, Text},
   plugins::html::html_inline::HtmlInline,
 };
 use markdown_it_front_matter::FrontMatter;
 use std::{collections::HashMap, convert::identity, path::PathBuf};
-use toml::Table;
+use toml::{Table, Value};
 
-pub fn markdown(markdown: &[u8], path: &str) -> Vec<Output> {
-  let markdown = String::from_utf8(markdown.to_vec()).unwrap();
-
+pub fn render_markdown(content: String) -> (HashMap<std::string::String, Value>, String) {
   let md = &mut MarkdownIt::new();
   markdown_it::plugins::cmark::add(md);
   markdown_it::plugins::extra::add(md);
@@ -38,7 +39,7 @@ pub fn markdown(markdown: &[u8], path: &str) -> Vec<Output> {
   md.inline.add_rule::<ComponentScanner>();
   md.inline.add_rule::<EmojiScanner>();
 
-  let mut output = md.parse(&markdown);
+  let mut output = md.parse(&content);
   let mut frontmatter = HashMap::new();
 
   if output
@@ -55,10 +56,21 @@ pub fn markdown(markdown: &[u8], path: &str) -> Vec<Output> {
     }
   }
 
+  (frontmatter, output.render())
+}
+
+pub fn markdown(markdown: &[u8], path: &str, tags: HashMap<String, Vec<Output>>) -> Vec<Output> {
+  let markdown = String::from_utf8(markdown.to_vec()).unwrap();
+  let (frontmatter, output) = render_markdown(markdown);
+
   let metadata = Metadata {
     title: frontmatter
       .get("title")
       .and_then(|d| d.as_str().map(|s| s.to_string())),
+    date: frontmatter.get("date").and_then(|d| {
+      d.as_str()
+        .and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
+    }),
     tags: frontmatter
       .get("tags")
       .map(|d| {
@@ -74,10 +86,49 @@ pub fn markdown(markdown: &[u8], path: &str) -> Vec<Output> {
   };
 
   vec![minify_html(Output {
-    // metadata,
+    metadata: metadata.clone(),
     content: Main {
-      title: metadata.title.as_deref(),
-      content: &output.render(),
+      metadata,
+      content: &regex_replace_all!("<p>%([a-z-]+)</p>", &output, |_, tag| {
+        // TODO: very janky
+        let items = tags
+          .get(tag)
+          .cloned()
+          .unwrap_or(Vec::new())
+          .into_iter()
+          .sorted_by_key(|k| k.metadata.date)
+          .rev()
+          .chunk_by(|k| k.metadata.date.map(|d| d.format("%Y").to_string()));
+        let items = items.into_iter().map(|v| {
+          (
+            match v.0 {
+              None => "Undated".to_string(),
+              Some(y) => y,
+            },
+            v.1.sorted_by_key(|k| k.metadata.date).rev(),
+          )
+        });
+
+        render_markdown(
+          items
+            .map(|(date, posts)| {
+              format!(
+                "## {}\n\n{}",
+                date,
+                posts
+                  .map(|output| format!(
+                    "<div style=\"display: flex; flex-direction: row;\"><a href=\"/{}\" style=\"flex-grow: 1;\">{}</a><span>{}</span></div>",
+                    output.path.with_extension("").display(),
+                    output.metadata.title.unwrap_or("No Title".to_string()),
+                    output.metadata.date.map(|date| date.format("%e %B, %Y").to_string()).unwrap_or_default(),
+                  ))
+                  .join("<br />")
+              )
+            })
+            .join("\n\n"),
+        )
+        .1
+      }),
     }
     .to_string()
     .into_bytes(),
@@ -235,20 +286,25 @@ impl InlineRule for ComponentScanner {
           _ => None,
         }
         .map(|name| Style { name }.to_string())
+        .map(|content| (Node::new(HtmlInline { content }), len))
       }
-      "hello" => Some(format!(
-        "hello, {}!",
-        args
-          .get(0)
-          .and_then(|arg| match arg {
-            ComponentArg::String(s) => Some(s.clone()),
-            _ => None,
-          })
-          .unwrap_or("world".to_string())
+      "hello" => Some((
+        Node::new(Text {
+          content: format!(
+            "hello, {}!",
+            args
+              .get(0)
+              .and_then(|arg| match arg {
+                ComponentArg::String(s) => Some(s.clone()),
+                _ => None,
+              })
+              .unwrap_or("world".to_string())
+          ),
+        }),
+        len,
       )),
       _ => None,
     }
-    .map(|content| (Node::new(HtmlInline { content }), len))
   }
 }
 

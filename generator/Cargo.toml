@@ -4,11 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.42"
 components = { path = "../components" }
 css-minify = "0.5.2"
 emoji = "0.2.1"
 grass = "0.13.4"
+itertools = "0.14.0"
 katex = "0.4.6"
+lazy-regex = "3.4.2"
 little_exif = "0.6.8"
 markdown-it = "0.6.1"
 markdown-it-autolink = "0.2.0"
