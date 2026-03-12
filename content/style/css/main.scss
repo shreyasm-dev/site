@@ -39,6 +39,10 @@ html {
   }
 }
 
+.table_of_contents {
+  border-bottom: solid 2px black;
+}
+
 a {
   text-decoration: none;
   font-weight: bold;
@@ -53,6 +57,12 @@ blockquote {
   margin: 0;
   padding-left: 1rem;
   border-left: solid var(--link) 3px;
+}
+
+pre {
+  padding: 1.5rem;
+  overflow: scroll;
+  border-radius: 1rem;
 }
 
 // layout

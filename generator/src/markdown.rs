@@ -15,11 +15,15 @@ use markdown_it_front_matter::FrontMatter;
 use std::{collections::HashMap, convert::identity, path::PathBuf};
 use toml::{Table, Value};
 
-pub fn render_markdown(content: String) -> (HashMap<std::string::String, Value>, String) {
+pub fn render_markdown(
+  content: String,
+  toc: bool,
+) -> (HashMap<std::string::String, Value>, String) {
   let md = &mut MarkdownIt::new();
   markdown_it::plugins::cmark::add(md);
   markdown_it::plugins::extra::add(md);
   markdown_it::plugins::html::add(md);
+  markdown_it::plugins::extra::syntect::add(md);
   // markdown_it::plugins::sourcepos::add(md);
   markdown_it_autolink::add(md);
   markdown_it_footnote::add(md);
@@ -34,6 +38,12 @@ pub fn render_markdown(content: String) -> (HashMap<std::string::String, Value>,
     },
   );
   markdown_it_tasklist::add(md);
+
+  markdown_it::plugins::extra::syntect::set_theme(md, "base16-ocean.dark");
+
+  if toc {
+    markdown_it_table_of_contents::add(md);
+  }
 
   md.inline.add_rule::<MathScanner>();
   md.inline.add_rule::<ComponentScanner>();
@@ -56,12 +66,16 @@ pub fn render_markdown(content: String) -> (HashMap<std::string::String, Value>,
     }
   }
 
-  (frontmatter, output.render())
+  if !toc && frontmatter.get("toc") == Some(&Value::Boolean(true)) {
+    render_markdown(content, true)
+  } else {
+    (frontmatter, output.render())
+  }
 }
 
 pub fn markdown(markdown: &[u8], path: &str, tags: HashMap<String, Vec<Output>>) -> Vec<Output> {
   let markdown = String::from_utf8(markdown.to_vec()).unwrap();
-  let (frontmatter, output) = render_markdown(markdown);
+  let (frontmatter, output) = render_markdown(markdown, false);
 
   let metadata = Metadata {
     title: frontmatter
@@ -126,6 +140,7 @@ pub fn markdown(markdown: &[u8], path: &str, tags: HashMap<String, Vec<Output>>)
               )
             })
             .join("\n\n"),
+            false
         )
         .1
       }),

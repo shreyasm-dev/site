@@ -35,6 +35,17 @@ pub fn transform(
     .filter_map(|e| e.ok())
     .filter(|e| e.metadata().unwrap().is_file())
   {
+    if entry
+      .path()
+      .file_name()
+      .unwrap()
+      .to_str()
+      .unwrap()
+      .starts_with(".")
+    {
+      continue;
+    }
+
     let data = std::fs::read(entry.path()).unwrap();
     let path = entry.path().to_str().unwrap();
 

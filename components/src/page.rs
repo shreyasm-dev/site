@@ -6,7 +6,7 @@ markup::define! {
     @markup::doctype()
     html[lang = "en"] {
       head {
-        title { @if let Some(title) = &metadata.title { @title } else { "Shreyas M" } }
+        title { @if let Some(title) = &metadata.title { @title } else { "Shreyas" } }
         meta[charset = "UTF-8"];
         meta[name = "viewport", content = "width=device-width, initial-scale=1.0"];
         @Style { name: "normalize" }
@@ -16,7 +16,7 @@ markup::define! {
         header {
           h2 {
             a[href = "/"] {
-              "Shreyas M"
+              "Shreyas"
             }
           }
         }
