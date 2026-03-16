@@ -48,7 +48,7 @@ markup::define! {
         }
 
         footer {
-          "All first-party content on this website and " a[href = "https://github.com/shreyasm-dev/site"] { "the code used to generated it" } " are, to whatever degree possible and unless explicitly mentioned otherwise, licensed under " a[href = "https://creativecommons.org/licenses/by-nc-sa/4.0/"] { "CC BY-NC-SA 4.0" }
+          "All first-party content on this website and " a[href = "https://github.com/shreyasm-dev/site"] { "the code used to generated it" } " are, to whatever degree possible and unless explicitly mentioned otherwise, licenced under " a[href = "https://creativecommons.org/licenses/by-nc-sa/4.0/"] { "CC BY-NC-SA 4.0" }
         }
       }
     }

@@ -99,7 +99,8 @@ pub fn image(input: &[u8], path: &str, tags: HashMap<String, Vec<Output>>) -> Ve
       .unwrap()
       .to_str()
       .unwrap()
-      .replace("-", " "),
+      .replace("-", " ")
+      .replace("  ", "-"),
   );
 
   vec![
