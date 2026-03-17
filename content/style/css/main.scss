@@ -3,11 +3,13 @@
   --foreground: #20262e;
   --error: rgb(255, 63, 63);
   --link: rgb(206, 45, 88);
+  --border: rgba(32, 38, 46, 0.1);
 }
 
 html {
   background-color: var(--background);
   color: var(--foreground);
+  font-size: 16px;
 }
 
 // generic
@@ -27,81 +29,175 @@ html {
 .caption {
   font-size: medium;
   opacity: 0.6;
+  font-weight: 500;
 }
 
 .tags {
+  max-width: 100%;
+  overflow: scroll;
+  scrollbar-width: none;
+
   a {
     font-size: medium;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    background: rgba(206, 45, 88, 0.1);
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
 
     + a {
-      margin-left: 1em;
+      margin-left: 0.5rem;
+    }
+
+    &:hover {
+      background: rgba(206, 45, 88, 0.15);
     }
   }
 }
 
 .table_of_contents {
-  border-bottom: solid 2px black;
+  border-bottom: solid 2px var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 a {
   text-decoration: none;
-  font-weight: bold;
-}
+  font-weight: 500;
 
-a,
-a:visited {
-  color: var(--link);
+  &,
+  &:visited {
+    color: var(--link);
+  }
 }
 
 blockquote {
-  margin: 0;
-  padding-left: 1rem;
-  border-left: solid var(--link) 3px;
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  border-left: solid 3px var(--link);
+  background: rgba(206, 45, 88, 0.02);
+  border-radius: 0 0.25rem 0.25rem 0;
+  font-style: italic;
 }
 
 pre {
   padding: 1.5rem;
   overflow: scroll;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
+  background: rgba(32, 38, 46, 0.03);
+  border: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+code {
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 0.9em;
+  background: rgba(32, 38, 46, 0.05);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
 }
 
 // layout
 
 body {
-  font-family: sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  line-height: 1.7;
 }
 
 header {
-  padding: 0.5rem 3rem;
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid var(--border);
 
   h2 {
-    display: inline;
-    float: left;
+    margin: 0;
   }
 }
 
 main {
   flex-grow: 1;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2rem 3rem;
   width: 800px;
   box-sizing: border-box;
-  line-height: 1.7;
   font-size: large;
+
+  hr {
+    border: none;
+    height: 2px;
+    background: var(--border);
+    margin: 2rem 0;
+  }
 }
 
-@media (width < 800px) {
+@media (width < 900px) {
+  header {
+    padding: 1rem 1.5rem;
+  }
+
   main {
     width: 100vw;
+    padding: 1.5rem;
     overflow-x: scroll;
   }
 }
 
 footer {
   text-align: center;
-  padding: 2rem;
+  padding: 2rem 3rem;
+  border-top: 2px solid var(--border);
+  background: rgba(238, 237, 248, 0.5);
+  font-size: 0.9rem;
+  color: rgba(32, 38, 46, 0.7);
+
+  a {
+    color: var(--link);
+    font-weight: 500;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.3;
+  margin: 2rem 0 1rem 0;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.5rem;
+}
+h3 {
+  font-size: 1.25rem;
+}
+h4 {
+  font-size: 1.1rem;
+}
+h5,
+h6 {
+  font-size: 1rem;
+}
+
+ul,
+ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin: 0.5rem 0;
+}
+
+p {
+  margin: 1rem 0;
 }

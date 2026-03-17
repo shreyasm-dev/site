@@ -6,8 +6,8 @@ title = "Favourites"
 
 These are some of my favourite photos, arranged in rough order (a few of them near the bottom of the list aren't great, but I like the shot apart from the execution and I've not managed to capture better ones):
 
-- [Red-Naped Ibis](red-naped-ibis)
-- [Green Bee-Eater 1](green-bee-eater-1)
+- [Red-Naped Ibis](red--naped-ibis)
+- [Green Bee-Eater 1](green-bee--eater-1)
 - [River Tern in Flight](river-tern-in-flight)
 - [Bulbul Perched 1](bulbul-perched-1)
 - [Squirrel 2](squirrel-2)
@@ -24,7 +24,7 @@ These are some of my favourite photos, arranged in rough order (a few of them ne
 - [Jungle Babbler Staring](jungle-babbler-staring)
 - [Lapwing in Flight](lapwing-in-flight)
 - [Wagtail Examining Dragonfly](wagtail-examining-dragonfly)
-- [Sparrow-Lark in Sand](sparrow-lark-in-sand)
+- [Sparrow-Lark in Sand](sparrow--lark-in-sand)
 - [Wagtail on Rock 1](wagtail-on-rock-1)
 - [Kingfisher in Flight](kingfisher-in-flight)
 - [Dragonfly on Grass](dragonfly-on-grass)
